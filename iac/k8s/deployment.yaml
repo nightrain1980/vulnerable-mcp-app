@@ -1,0 +1,117 @@
+# VULN: Kubernetes deployment with severe security misconfigurations
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vulnmcp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vulnmcp-server
+  namespace: vulnmcp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vulnmcp-server
+  template:
+    metadata:
+      labels:
+        app: vulnmcp-server
+    spec:
+      serviceAccountName: vulnmcp-default
+
+      # VULN: POD-001 — Sharing host PID and network namespaces
+      hostPID: true      # Can see host processes
+      hostNetwork: true  # Uses host network interface
+
+      containers:
+      - name: server
+        image: vulnmcp-server:latest
+        imagePullPolicy: Always
+
+        ports:
+        - containerPort: 8000
+          name: http
+
+        # VULN: POD-002 — Running as root (UID 0)
+        # Missing: securityContext with runAsNonRoot: true
+
+        # VULN: SEC-001 — Privileged container
+        securityContext:
+          privileged: true           # CRITICAL: Full host access
+          allowPrivilegeEscalation: true
+          # MISSING: readOnlyRootFilesystem: true
+          # MISSING: runAsNonRoot: true
+          # MISSING: runAsUser: 1000
+
+        # VULN: VOL-001 — hostPath mounts expose sensitive paths
+        volumeMounts:
+        - name: docker-socket
+          mountPath: /var/run/docker.sock
+        - name: host-root
+          mountPath: /host
+        - name: host-proc
+          mountPath: /host-proc
+
+        # VULN: RES-001 — No resource limits (enables DoS)
+        # Missing: resources.limits and resources.requests
+
+        env:
+        - name: DISABLE_AUTH
+          value: "true"
+        - name: ENABLE_LOGGING
+          value: "false"
+        - name: ENABLE_PICKLE
+          value: "true"
+
+      # VULN: VOL-001 — hostPath volumes expose host filesystem
+      volumes:
+      - name: docker-socket
+        hostPath:
+          path: /var/run/docker.sock
+          type: Socket
+      - name: host-root
+        hostPath:
+          path: /
+          type: Directory
+      - name: host-proc
+        hostPath:
+          path: /proc
+          type: Directory
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vulnmcp-client
+  namespace: vulnmcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vulnmcp-client
+  template:
+    metadata:
+      labels:
+        app: vulnmcp-client
+    spec:
+      serviceAccountName: vulnmcp-default
+
+      containers:
+      - name: client
+        image: vulnmcp-client:latest
+        imagePullPolicy: Always
+
+        # VULN: Same security misconfigurations as server
+        securityContext:
+          privileged: true
+
+        env:
+        - name: MCP_SERVER_URL
+          value: "http://vulnmcp-service:8000"
+        - name: DISABLE_TLS_VERIFY
+          value: "true"
+        - name: LOG_SECRETS
+          value: "true"

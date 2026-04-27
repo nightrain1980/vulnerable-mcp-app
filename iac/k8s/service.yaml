@@ -1,0 +1,47 @@
+# VULN: Service exposing internal ports publicly
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: vulnmcp-service
+  namespace: vulnmcp
+spec:
+  type: LoadBalancer  # VULN: Exposes service to internet
+
+  # VULN: SVC-001 — LoadBalancer on all ports
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP
+    name: client
+  - port: 9000
+    targetPort: 9000
+    protocol: TCP
+    name: debug
+
+  selector:
+    app: vulnmcp-server
+
+  # MISSING: selector should use nodeSelector or affinity for more control
+  # MISSING: ingressClassName for more secure access pattern
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vulnmcp-client-service
+  namespace: vulnmcp
+spec:
+  type: LoadBalancer  # VULN: Client also publicly exposed
+
+  ports:
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP
+
+  selector:
+    app: vulnmcp-client

@@ -1,0 +1,79 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+ENV/
+env/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Kubernetes
+.kube/
+kubeconfig
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Environment
+.env
+.env.*.local
+.env.*.vault
+
+# Secrets (NEVER COMMIT THESE!)
+secrets/
+credentials.json
+*.key
+*.pem
+*.pfx
+
+# OS
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Build artifacts
+*.tar.gz
+*.zip

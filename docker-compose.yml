@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # MCP Server
+  mcp-server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: vulnmcp-server
+    ports:
+      - "8000:8000"
+    environment:
+      - ENABLE_LOGGING=false
+      - DISABLE_AUTH=true
+      - DISABLE_TLS_VERIFY=true
+      - ENABLE_PICKLE=true
+      - LOG_SECRETS=true
+    networks:
+      - vulnmcp-network
+    # VULN: No restart policy = service fails if crash
+    # VULN: No health check
+    # VULN: Running as root (default)
+
+  # MCP Client
+  mcp-client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: vulnmcp-client
+    ports:
+      - "3000:3000"
+    environment:
+      - MCP_SERVER_URL=http://mcp-server:8000
+      - DISABLE_TLS_VERIFY=true
+      - LOG_SECRETS=true
+    depends_on:
+      - mcp-server
+    networks:
+      - vulnmcp-network
+    # VULN: No restart policy
+    # VULN: No health check
+
+  # Optional: Lab dashboard (placeholder)
+  lab-dashboard:
+    image: nginx:latest
+    container_name: vulnmcp-dashboard
+    ports:
+      - "9090:80"
+    networks:
+      - vulnmcp-network
+    # VULN: Generic nginx image - consider using distroless alternative
+
+networks:
+  vulnmcp-network:
+    driver: bridge
