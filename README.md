@@ -1,6 +1,6 @@
 # ☠️ VulnMCP — Deliberately Vulnerable MCP Application
 
-> **A security awareness and education platform demonstrating real-world attack vectors in Model Context Protocol (MCP) ecosystems, cloud infrastructure, and software supply chains.**
+> **A security awareness and education platform demonstrating real-world attack vectors in Model Context Protocol (MCP) ecosystems, cloud infrastructure, and software supply chains.****
 
 ---
 
